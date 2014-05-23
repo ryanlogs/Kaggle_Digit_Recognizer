@@ -5,6 +5,16 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+%%================= Update these values ================= %%
+hidden_layer1_size = 200;
+lambda = 1.2;
+iterations = 300;
+
+%adding functions directory to load path
+addpath("functions");
+submission_name = "latest_submission.csv";
+output_dir = "output";
+
 disp("Starting Digit Recognizer");
 
 
@@ -13,9 +23,9 @@ disp("Starting Digit Recognizer");
 %y = data(:,1);
 %X = data(:,2:end);
 %save -binary 'trainData.mat' X,y;
-load -binary 'F:\coursera\MC learning\Kaggle\Digit Regognizer\trainData.mat'
-y = train(:,1);
-X = train(:,2:end);
+load -binary 'data\trainData.mat'
+y = trainData(:,1);
+X = trainData(:,2:end);
 
 %%% ================ Display Data ========================= %%% 
 disp("\nDisplaying first 100 digits from training set \n");
@@ -23,6 +33,9 @@ display_data(X(1:100,:),28);
 labels = reshape(y(1:100,1),10,10)';
 disp(labels);
 
+disp("\nHit Enter to start!!!\n");
+pause;
+disp("Starting Neural Network Training...\n");
 
 %%% ================ Initializing neural network ========== %%%
 disp("\nInitializing Neural Network Parameters ...\n");
@@ -30,7 +43,7 @@ disp("\nInitializing Neural Network Parameters ...\n");
 %neural network [784, 50, 50, 10]
 
 ip_layer_size = 784;
-hidden_layer1_size = 200;
+%hidden_layer1_size = 200;
 op_layer_size = 10;
 
 initial_Theta1 = randInitializeWeights(ip_layer_size,hidden_layer1_size);
@@ -42,8 +55,8 @@ initial_nn_params = [initial_Theta1(:) ; initial_Theta2(:)];
 %%% ================ Training NN ========================== %%%
 disp("\nTraining Neural Network... \n");
 
-options = optimset('MaxIter', 5000);
-lambda = 1.2;
+options = optimset('MaxIter', iterations);
+%lambda = 1.2;
 network = [ip_layer_size; hidden_layer1_size; op_layer_size];
 
 % Obtain Theta1 and Theta2 back from nn_params
@@ -70,13 +83,26 @@ fprintf('\nTraining Set Accuracy: %f lambda: %f\n', mean(double(pred == y)) * 10
 %%% ================ Test Data ============================ %%%
 %data = load_csv('F:\coursera\MC learning\Kaggle\Digit Regognizer\train.csv',100,783);
 %X = data(1:100,1:end);
-load -binary 'F:\coursera\MC learning\Kaggle\Digit Regognizer\testData.mat';
+load -binary 'data\testData.mat';
 %X = testData
 pred = predict(Theta1, Theta2, testData);
 
+%display some samples
+disp("\nDisplaying first 100 digits from test set \n");
+display_data(testData(1:100,:),28);
+labels = reshape(pred(1:100,1),10,10)';
+disp(labels);
+
+disp("Writing Test Output... \n");
+%writing the headers first
+output = sprintf("%s/%s",output_dir,submission_name);
+out_id = fopen(output,"w+");
+fprintf(out_id,"%s","ImageId,Label\n");
+fclose(out_id);
+
 out = (1:28000)';
 out = [out pred];
-dlmwrite ('output/submission4.csv', out, ",");
+dlmwrite (output, out, ",","-append");
 %display_data(X(1:100,:),28);
 %labels = reshape(pred,10,10)';
 %disp(labels);	
